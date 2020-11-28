@@ -13,9 +13,8 @@ Test Technique - black-box (3 functional negative login tests are performed - fo
 see the Test_Plan_WiHa.xlsx).
 
 Test Data - for demonstration purposes the present project involves integration of 3 data sources:
-        - TestNG parameters,
-        - Excel file (Apache POI) and
-        - MySQL data base (JDBC).
+
+    TestNG parameters, Excel file (Apache POI) and MySQL data base (JDBC).
  
 Project management tool - JIRA Software Cloud.
 
@@ -26,4 +25,4 @@ for space reasons).
 
     How to run the project?
 1. Start your DBMS and your Appium Server.
-2. In order to execute all test included, you have to run the TESTNG.XML.
+2. In order to execute all test included, you have to run the "testng.xml".
