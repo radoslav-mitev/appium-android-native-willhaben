@@ -9,7 +9,6 @@ import org.openqa.selenium.support.PageFactory;
 
 public class WillhabenHomepage {
 
-
     @AndroidFindBy (id = "at.willhaben:id/btn_onboarding_login")
     AndroidElement loginButton;
 
