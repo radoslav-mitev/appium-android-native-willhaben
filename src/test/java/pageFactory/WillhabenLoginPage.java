@@ -9,8 +9,6 @@ import org.openqa.selenium.support.PageFactory;
 
 public class WillhabenLoginPage {
 
-   // private AndroidDriver<AndroidElement> driver;
-
     @AndroidFindBy(id = "at.willhaben:id/edittextScreenLoginEmail")
     private AndroidElement inputFieldEMail;
 
@@ -21,6 +19,7 @@ public class WillhabenLoginPage {
     public void setInputFieldEMail(String eMail) {
         this.inputFieldEMail.sendKeys(eMail);
     }
+
 
     @AndroidFindBy(id = "at.willhaben:id/edittextScreenLoginPassword")
     private AndroidElement inputFieldPassword;
@@ -33,6 +32,7 @@ public class WillhabenLoginPage {
         this.inputFieldPassword.sendKeys(inputFieldPassword);
     }
 
+
     @AndroidFindBy(id = "at.willhaben:id/btnScreenLogin")
     private AndroidElement loginButton;
 
@@ -40,9 +40,8 @@ public class WillhabenLoginPage {
         this.loginButton.click();
     }
 
-    //alert message:
+    //error message:
     //"Die angegebene E-Mail-Adresse bzw. das Passwort konnten nicht erkannt werden.
-    //Du kannst dich nicht einloggen? Auf Hilfe & Kontakt findest du alles Wissenswerte!"
     @AndroidFindBy(id = "at.willhaben:id/dialog_message")
     private AndroidElement alertEMailOderPasswortNichtErkannt;
 
@@ -67,7 +66,6 @@ public class WillhabenLoginPage {
 
 
     public WillhabenLoginPage (AppiumDriver<WebElement> driver){
-        //this.driver = driver;
         PageFactory.initElements(new AppiumFieldDecorator(driver), this);
     }
 

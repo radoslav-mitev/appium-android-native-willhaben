@@ -1,17 +1,9 @@
 package dataDrivenTesting;
 
 /*
- * Automated Data-Driven Testing implementation of Appium for Android native apps
- *
- * Test object – the logon process on the app "Willhaben"
- *
- * Test features – three of more possible error alerts:
- *      "Die angegebene E-Mail-Adresse bzw. das Passwort konnten nicht erkannt werden."
- *      "E-Mail-Adresse"
- *      "Passwort"
- *
- * This class contains TestNG (negative) tests performing 2 login attempts implementing Apache POI (Excel) and 2 using JDBC (MySQL),
- * all with incorrect credentials and verifies the expected 3 error alerts.
+ * For demonstration purposes the following class contains 3 negative login tests (TC_Login_02 - TC_Login_04) using
+ * test data from 3 different sources.
+ * For more details concerning the test cases, see the Test_Plan_WiHa.xlsx.
  */
 
 import io.appium.java_client.AppiumDriver;
@@ -37,7 +29,6 @@ import java.net.URL;
 import java.sql.*;
 import java.util.concurrent.TimeUnit;
 
-
 public class WillhabenLoginTest {
 
     private AppiumDriver<WebElement> driver;
@@ -48,10 +39,10 @@ public class WillhabenLoginTest {
     private Statement statement;
     private ResultSet resultSet;
     private WebDriverWait wait;
-    DesiredCapabilities capabilities;
+    private DesiredCapabilities capabilities;
 
     /**
-     * Verifying that one ot the 3 expected error alerts is displayed:
+     * Verifying that one of the 3 expected error messages is displayed:
      *
      * @param element one of the three expected web elements (test features)
      */
@@ -69,7 +60,6 @@ public class WillhabenLoginTest {
         Assert.assertTrue(statusElementDisplayed);
     }
 
-
     /**
      * testSetup() performs:
      * setting up the capabilities and
@@ -78,40 +68,43 @@ public class WillhabenLoginTest {
 
     @BeforeTest
     public void testSetup() {
-//        DesiredCapabilities capabilities = new DesiredCapabilities();
         this.capabilities = new DesiredCapabilities();
-
-        this.capabilities.setCapability(MobileCapabilityType.DEVICE_NAME,"NEO");
-        this.capabilities.setCapability(MobileCapabilityType.UDID,"5200a272b26823f7");
-        this.capabilities.setCapability(MobileCapabilityType.PLATFORM_NAME, "Android");
-        this.capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION,"6.0.1");
+        this.capabilities.setCapability(MobileCapabilityType.DEVICE_NAME,"NEO"); //you have to add your own settings
+        this.capabilities.setCapability(MobileCapabilityType.UDID,"5200a272b26823f7"); //you have to add your own settings
+        this.capabilities.setCapability(MobileCapabilityType.PLATFORM_NAME, "Android"); //you have to add your own settings
+        this.capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION,"6.0.1"); //you have to add your own settings
         this.capabilities.setCapability(AndroidMobileCapabilityType.APP_PACKAGE, "at.willhaben");
         this.capabilities.setCapability(AndroidMobileCapabilityType.APP_ACTIVITY,"at.willhaben.MainActivity");
 
         //importing data from an excel file
         try {
-//            File src = new File(".\\src\\main\\testdataAndDriver\\Testdata_Excel.xlsx");
             File src = new File(".\\src\\main\\java\\testdataAndDriver\\Testdata_Excel.xlsx");
             OPCPackage pkg = OPCPackage.open(src);
             XSSFWorkbook workbook = new XSSFWorkbook(pkg);
             this.sheet = workbook.getSheetAt(0);
             pkg.close();
         } catch (IOException | InvalidFormatException e) {
-            System.out.println("Fehler: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
+    @AfterTest
+    public void tearDown() {
+        if (this.driver != null) {
+            this.driver.closeApp();
+        }
+    }
+
+
     /**
-     * testSetup() performs:
-     * establishing a connection to the appium server,
+     * testMethodSetup() performs:
+     * establishing a connection to the Appium server,
      * page objects initialization,
-     * a click on the "Einloggen" element.
-     *
+     * a click on the "Einloggen" web element.
      */
 
-
     @BeforeMethod
-    public void testSet2() {
+    public void testMethodSetup() {
         try {
             URL url = new URL("http://127.0.0.1:4723/wd/hub");
             this.driver = new AppiumDriver<>(url, this.capabilities);
@@ -130,20 +123,67 @@ public class WillhabenLoginTest {
         this.willhabenHomepage.clickLogin();
     }
 
+    /*
+      TC_Login_01 - "Happy Path" Test case is NOT IMPLEMENTED here, since correct login credentials are required for this!!!
+     */
+
 
     /**
-     * The test method uses test data from a MySQL database - two pairs of nonvalid credentials but in correct format:
+     * Test case - TC_Login_02
+     * Test feature - user login and the error message:
+     * "Die angegebene E-Mail-Adresse bzw. das Passwort konnten nicht erkannt werden".
      *
-     * [db1@gmx.at | password1]
-     * [ db2@te.st | password2]
-     *
-     * Test feature - the following error alert:
-     * "Die angegebene E-Mail-Adresse bzw. das Passwort konnten nicht erkannt werden."
-     *
+     * This parametrized TestNG negative login test uses following test data (with nonvalid credentials) from the TESTNG.XML:     *
+     * @param email par@metriz.ed
+     * @param password parameter
      */
 
     @Test
-    public void loginUsingDB() {
+    @Parameters({"e-mail", "password"})
+    public void testParametrized(String email, String password) {
+
+        this.willhabenLogin.setEMail(email);
+        this.willhabenLogin.setPassword(password);
+        this.willhabenLogin.setloginButtonClick();
+
+        //verifying the error message: "Die angegebene E-Mail Adresse bzw. das Passwort konnten nicht erkannt werden."
+        this.assertExpectedAlertIsDisplayed(this.willhabenLogin.getAlertEMailOderPasswortNichtErkannt());
+
+        this.driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        this.willhabenLogin.clickOkButton();
+    }
+
+
+    /**
+     * Test case - TC_Login_03
+     * Test feature - user login and the error message: "Passwort".
+     * These negative test imports and uses test data from an EXCEL file:
+     * logon information WITH e-mail address but WITHOUT a password.
+     */
+
+    @Test
+    public void testLoginUsingExcelFileData_noPassword() {
+
+        this.willhabenLogin.setInputFieldEMail(this.sheet.getRow(1).getCell(0).getStringCellValue());
+
+        //submit
+        this.willhabenLogin.setloginButtonClick();
+
+        //verifying the error message: "Passwort"
+        this.assertExpectedAlertIsDisplayed(this.willhabenLogin.getInputFieldPassword());
+    }
+
+
+    /**
+     * Test case - TC_Login_04
+     * Test feature - user login and the error message: "E-Mail-Adresse".
+     *
+     * The negative test uses test data from a MySQL database - logon information WITH password but WITHOUT an e-mail address:
+     * [    | password_DB].
+     */
+
+    @Test
+    public void testLoginUsingDB() {
 
         try {
 
@@ -152,13 +192,11 @@ public class WillhabenLoginTest {
                 this.connection = DriverManager
                         .getConnection("jdbc:mysql://localhost/db_login_data", "root", "");
             }
-
             this.statement = connection.createStatement();
-
-            this.resultSet = statement.executeQuery("SELECT * FROM tb_login_data_valid_email_format");
+            this.resultSet = statement.executeQuery("SELECT * FROM tb_login_data_appium");
 
         } catch (ClassNotFoundException | SQLException e) {
-            System.out.println("Fehler: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
 
         // using data from the database
@@ -166,26 +204,17 @@ public class WillhabenLoginTest {
         try {
             while (this.resultSet.next()) {
 
-
-                this.willhabenLogin.setEMail(this.resultSet.getString("username"));
                 this.willhabenLogin.setPassword(this.resultSet.getString("password"));
                 this.willhabenLogin.setloginButtonClick();
 
-                //assert error message:
+                //verifying the error message:
                 //"Login fehlgeschlagen. Die angegebene E-Mail Adresse bzw. das Passwort konnten nicht erkannt werden."
-                this.assertExpectedAlertIsDisplayed(this.willhabenLogin.getAlertEMailOderPasswortNichtErkannt());
-
-                this.driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-                this.willhabenLogin.clickOkButton();
-
+                this.assertExpectedAlertIsDisplayed(this.willhabenLogin.getInputFieldEMail());
             }
         } catch (SQLException e) {
-            System.out.println("Fehler: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
 
         } finally {
-
-            //this.driver.quit();
-
             try {
                 if (this.statement != null) {
                     this.statement.close();
@@ -197,58 +226,8 @@ public class WillhabenLoginTest {
                     this.connection.close();
                 }
             } catch (SQLException e) {
-                System.out.println("Fehler: " + e.getMessage());
+                System.out.println("Error: " + e.getMessage());
             }
         }
-    }
-
-    /**
-     * The test method imports and uses test data from an EXCEL file:
-     * one pair of credentials in INVALID e-mail format (without @ and domain) and WITHOUT a password:
-     * [excel1@gmx|   ]
-     *
-     * Test feature (error alert): "Passwort"
-     *
-     */
-
-    @Test
-    public void loginUsingExcelFileData_noPassword() {
-
-        this.willhabenLogin.setInputFieldEMail(this.sheet.getRow(1).getCell(0).getStringCellValue());
-
-        //submit
-        this.willhabenLogin.setloginButtonClick();
-
-        //verifying alert message: "Passwort"
-        this.assertExpectedAlertIsDisplayed(this.willhabenLogin.getInputFieldPassword());
-
-        //this.driver.quit();
-    }
-
-    /**
-     * The test method imports and uses test data from an EXCEL file:
-     * one pair of credentials with password but without an e-mail address:
-     * [        | passwordexcel  ]
-     *
-     * Test feature (error alert): "Passwort"
-     */
-
-    @Test
-    public void loginUsingExcelFileData_noEmailAddress() {
-
-        this.willhabenLogin.setInputFieldPassword(this.sheet.getRow(2).getCell(1).getStringCellValue());
-
-        //submit
-        this.willhabenLogin.setloginButtonClick();
-
-        //verifying alert message: "E-Mail-Adresse""
-        this.assertExpectedAlertIsDisplayed(this.willhabenLogin.getInputFieldEMail());
-
-        //this.driver.quit();
-    }
-
-    @AfterTest
-    public void tearDown() {
-        this.driver.closeApp();
     }
 }

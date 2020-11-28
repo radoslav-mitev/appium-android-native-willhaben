@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All Test Suite">
+    <test verbose="2" preserve-order="true" name="C:/javaDevelopment/Mobile/appium-android-native-willhaben">
+        <parameter name="e-mail" value="par@metriz.ed"></parameter>
+        <parameter name="password" value="parameter"></parameter>
+        <classes>
+            <class name="dataDrivenTesting.WillhabenLoginTest">
+                <methods>
+                    <include name="testParametrized"/>
+                    <include name="testLoginUsingExcelFileData_noPassword"/>
+                    <include name="testLoginUsingDB"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+</suite>
